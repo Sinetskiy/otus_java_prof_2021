@@ -1,0 +1,2 @@
+rootProject.name = 'otusJavaProf'
+include 'HW01-gradle'
