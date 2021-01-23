@@ -13,8 +13,7 @@ public class CustomerService {
     private TreeMap<Customer, String> customerMap = new TreeMap<>();
 
     public Map.Entry<Customer, String> getSmallest() {
-        //КАК ЭТО НАПИСАТЬ ПРОЩЕ И ПРАВИЛЬНЕЙ ?
-        Customer key = customerMap.keySet().stream().min(Comparator.comparing(Customer::getScores)).get();
+        Customer key = customerMap.firstKey();
         Customer newKey = new Customer(key.getId(), key.getName(), key.getScores());
         return new AbstractMap.SimpleEntry<>(newKey, customerMap.get(newKey));
     }
