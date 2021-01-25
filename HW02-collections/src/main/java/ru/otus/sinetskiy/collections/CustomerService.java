@@ -26,5 +26,3 @@ public class CustomerService {
         customerMap.put(customer, data);
     }
 }
-
-// HW3-reflection/annotations
