@@ -19,7 +19,6 @@ class TestRunner<T> {
 
     TestRunner(Class<T> clazz) {
         this.clazz = clazz;
-        this.testObj = ReflectionHelper.instantiate(clazz);
     }
 
     void run() {
@@ -53,6 +52,7 @@ class TestRunner<T> {
         for (Method method : clazz.getMethods()) {
             if (method.isAnnotationPresent(Test.class)) {
                 try {
+                    this.testObj = ReflectionHelper.instantiate(clazz);
                     System.out.println("--- test method - " +  method.getName());
                     this.before();
                     ReflectionHelper.callMethod(testObj, method.getName());
