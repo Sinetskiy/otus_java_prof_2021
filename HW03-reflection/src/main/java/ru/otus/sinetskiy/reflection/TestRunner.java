@@ -13,16 +13,10 @@ import java.util.Map;
  */
 class TestRunner<T> {
 
-    private Class<T> clazz;
     private Map<String, Integer> resultMap = new HashMap<>();
-    private T testObj;
 
-    TestRunner(Class<T> clazz) {
-        this.clazz = clazz;
-    }
-
-    void run() {
-        mainTests();
+    void run(Class<T> clazz) {
+        mainTests(clazz);
         printStatistic();
     }
 
@@ -32,9 +26,9 @@ class TestRunner<T> {
         resultMap.forEach((key, value) -> System.out.println(key + " " + value));
     }
 
-    private void before() {
+    private void before(T testObj) {
         System.out.println("--- before methods:");
-        for (Method method : clazz.getMethods()) {
+        for (Method method : testObj.getClass().getMethods()) {
             if (method.isAnnotationPresent(Before.class)) {
                 try {
                     ReflectionHelper.callMethod(testObj, method.getName());
@@ -47,28 +41,9 @@ class TestRunner<T> {
         }
     }
 
-    private void mainTests() {
-        System.out.println("Tests methods:");
-        for (Method method : clazz.getMethods()) {
-            if (method.isAnnotationPresent(Test.class)) {
-                try {
-                    this.testObj = ReflectionHelper.instantiate(clazz);
-                    System.out.println("--- test method - " +  method.getName());
-                    this.before();
-                    ReflectionHelper.callMethod(testObj, method.getName());
-                    resultMap.put("tests-success", (resultMap.get("tests-success") == null ? 0 : resultMap.get("tests-success")) + 1);
-                    this.after();
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                    resultMap.put("tests-problem", (resultMap.get("tests-problem") == null ? 0 : resultMap.get("tests-success")) + 1);
-                }
-            }
-        }
-    }
-
-    private void after() {
+    private void after(T testObj) {
         System.out.println("--- after methods:");
-        for (Method method : clazz.getMethods()) {
+        for (Method method : testObj.getClass().getMethods()) {
             if (method.isAnnotationPresent(After.class)) {
                 try {
                     ReflectionHelper.callMethod(testObj, method.getName());
@@ -79,4 +54,24 @@ class TestRunner<T> {
             }
         }
     }
+
+    private void mainTests(Class<T> clazz) {
+        System.out.println("Tests methods:");
+        for (Method method : clazz.getMethods()) {
+            T testObj = ReflectionHelper.instantiate(clazz);
+            if (method.isAnnotationPresent(Test.class)) {
+                try {
+                    System.out.println("--- test method - " +  method.getName());
+                    this.before(testObj);
+                    ReflectionHelper.callMethod(testObj, method.getName());
+                    resultMap.put("tests-success", (resultMap.get("tests-success") == null ? 0 : resultMap.get("tests-success")) + 1);
+                    this.after(testObj);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    resultMap.put("tests-problem", (resultMap.get("tests-problem") == null ? 0 : resultMap.get("tests-problem")) + 1);
+                }
+            }
+        }
+    }
+
 }
