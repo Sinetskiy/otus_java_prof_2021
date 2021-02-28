@@ -3,11 +3,6 @@
  */
 package ru.otus.sinetskiy;
 
-import com.google.common.collect.Lists;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -25,15 +20,15 @@ public class App {
 
         var atm = new ATM();
 
-        atm.cashIn(Map.of(Denomination._5000_, 2, Denomination._1000_,8, Denomination._100_, 5));
+        atm.cashIn(1, Map.of(Denomination.D_5000, 2, Denomination.D_1000,8, Denomination.D_100, 5));
 
         try {
-            var cash = atm.withdrawal(10150);
+            var cash = atm.withdrawal(1,10150);
             System.out.println(cash.entrySet());
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
 
-        atm.printAccount();
+        atm.printAccount(1);
     }
 }

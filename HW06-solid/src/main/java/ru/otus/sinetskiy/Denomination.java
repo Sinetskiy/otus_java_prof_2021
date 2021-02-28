@@ -4,13 +4,13 @@ package ru.otus.sinetskiy;
  * @author Andrei Sinetskii
  */
 public enum Denomination {
-    _50_(50),
-    _100_(100),
-    _200_(200),
-    _500_(500),
-    _1000_(1000),
-    _2000_(2000),
-    _5000_(5000);
+    D_5000(5000),
+    D_2000(2000),
+    D_1000(1000),
+    D_500(500),
+    D_200(200),
+    D_100(100),
+    D_50(50);
     private final int value;
     Denomination(int value) { this.value = value; }
     public int getValue() { return value; }

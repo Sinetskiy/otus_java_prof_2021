@@ -6,78 +6,62 @@ import java.util.Map;
 /**
  * @author Andrei Sinetskii
  */
-public class ATM {
+public class ATM implements AtmInterface {
 
     private Map<Denomination, Integer> atmBank = new HashMap<>();
-
-    public void init() {
-        atmBank.put(Denomination._5000_, 100);
-        atmBank.put(Denomination._2000_, 100);
-        atmBank.put(Denomination._1000_, 100);
-        atmBank.put(Denomination._500_, 100);
-        atmBank.put(Denomination._200_, 100);
-        atmBank.put(Denomination._100_, 100);
-        atmBank.put(Denomination._50_, 100);
-    }
-
-    void cashIn(Map<Denomination, Integer> cash) {
-
-        for (var key : cash.keySet()) {
-            atmBank.put(key, atmBank.getOrDefault(key, 0) + cash.get(key));
-        }
-
-        printAccount();
-
-    }
-
-    Map<Denomination, Integer> withdrawal(int sum) throws Exception {
-
-        var cash = new HashMap<Denomination, Integer>();
-
-        if (sum >= 5000) {
-            sum = getCash(sum, Denomination._5000_, cash);
-        }
-        if (sum >= 2000) {
-            sum = getCash(sum, Denomination._2000_, cash);
-        }
-        if (sum >= 1000) {
-            sum = getCash(sum, Denomination._1000_, cash);
-        }
-        if (sum >= 500) {
-            sum = getCash(sum, Denomination._500_, cash);
-        }
-        if (sum >= 200) {
-            sum = getCash(sum, Denomination._200_, cash);
-        }
-        if (sum >= 100) {
-            sum = getCash(sum, Denomination._100_, cash);
-        }
-        if (sum >= 50) {
-            sum = getCash(sum, Denomination._50_, cash);
-        }
-
-        if (sum > 0)
-            throw new Exception("Не возможно выдать запрашщиваемму сумму");
-
-        return cash;
-    }
+    private Map<Integer, Integer> accounts = new HashMap<>();
 
     private int getCash(int sum, Denomination denomination, HashMap<Denomination, Integer> cash) {
 
         var countOfNotes = sum / denomination.getValue();
-        atmBank.put(denomination, atmBank.getOrDefault(denomination,0) - countOfNotes);
+        atmBank.put(denomination, atmBank.getOrDefault(denomination, 0) - countOfNotes);
         cash.put(denomination, countOfNotes);
         return sum % denomination.getValue();
     }
 
-    void printAccount() {
+    private int getNewBalance(int accountId, int sum) throws Exception {
+        var accountBalance = accounts.getOrDefault(accountId, 0);
+
+        if (accountBalance < sum)
+            throw new Exception("Не достаточно средств");
+
+        return accountBalance - sum;
+    }
+
+    public void cashIn(int accountId, Map<Denomination, Integer> cash) {
 
         var sum = 0;
-
-        for (var key : atmBank.keySet()) {
-            sum += atmBank.get(key) * key.getValue();
+        for (var key : cash.keySet()) {
+            atmBank.put(key, atmBank.getOrDefault(key, 0) + cash.get(key));
+            sum += key.getValue() * cash.get(key);
         }
 
+        accounts.put(accountId, accounts.getOrDefault(accountId, 0) + sum);
+        printAccount(accountId);
+
+    }
+
+
+    public Map<Denomination, Integer> withdrawal(int accountId, int sum) throws Exception {
+
+        var cash = new HashMap<Denomination, Integer>();
+        int newBalance = getNewBalance(accountId, sum);
+
+        for (var denomination : Denomination.values()) {
+            sum = getCash(sum, denomination, cash);
+        }
+
+        if (sum > 0)
+            throw new Exception("Не возможно выдать запрашиваемму сумму");
+
+        accounts.put(accountId, newBalance);
+
+        return cash;
+    }
+
+    public void printAccount(int accountId) {
+
+        var sum = accounts.getOrDefault(accountId, 0);
         System.out.println("Your account balance: " + sum);
     }
 
