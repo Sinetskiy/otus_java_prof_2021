@@ -11,7 +11,7 @@ public class ATM implements AtmInterface {
     private Map<Denomination, Integer> atmBank = new HashMap<>();
     private Map<Integer, Integer> accounts = new HashMap<>();
 
-    private int getCash(int sum, Denomination denomination, HashMap<Denomination, Integer> cash) {
+    private int getCash(int sum, Denomination denomination, Map<Denomination, Integer> cash) {
 
         var countOfNotes = sum / denomination.getValue();
         atmBank.put(denomination, atmBank.getOrDefault(denomination, 0) - countOfNotes);
@@ -48,7 +48,8 @@ public class ATM implements AtmInterface {
         int newBalance = getNewBalance(accountId, sum);
 
         for (var denomination : Denomination.values()) {
-            sum = getCash(sum, denomination, cash);
+            if (sum != 0)
+                sum = getCash(sum, denomination, cash);
         }
 
         if (sum > 0)
