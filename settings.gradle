@@ -4,5 +4,5 @@ include 'HW02-collections'
 include 'HW03-reflection'
 include 'HW05-class-loader'
 include 'HW06-solid'
-include 'HW07-patterns'
+
 include 'HW08-serialization'
