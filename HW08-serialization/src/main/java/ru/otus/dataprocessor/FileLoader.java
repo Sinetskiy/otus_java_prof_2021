@@ -1,33 +1,38 @@
 package ru.otus.dataprocessor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.type.CollectionType;
 import ru.otus.model.Measurement;
 
-
-import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+
+import javax.json.Json;
+import javax.json.JsonArray;
 
 public class FileLoader implements Loader {
 
-    private final File file;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final String fileName;
 
     public FileLoader(String fileName) {
-        file = new File(fileName);
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer(Measurement.class, new MeasurementDeserializer());
-        mapper.registerModule(module);
+        this.fileName = fileName;
     }
 
     @Override
     public List<Measurement> load() throws IOException {
         //читает файл, парсит и возвращает результат
-        CollectionType measurementType = mapper.getTypeFactory()
-                .constructCollectionType(List.class, Measurement.class);
-        return mapper.readValue(file, measurementType);
+        var fis = new FileInputStream(fileName);
+        var reader = Json.createReader(fis);
+        var personObject = (JsonArray) reader.read();
+        reader.close();
+        var measurementList = new ArrayList<Measurement>();
+        for (var jsonElement : personObject) {
+            var measurement = new Measurement(jsonElement.asJsonObject().getString("name")
+                    , jsonElement.asJsonObject().getInt("value"));
+            measurementList.add(measurement);
+        }
+
+        return measurementList;
     }
 
 
