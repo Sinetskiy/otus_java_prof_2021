@@ -6,13 +6,13 @@ import org.junit.jupiter.api.Test;
 import ru.otus.model.Message;
 import ru.otus.listener.Listener;
 import ru.otus.processor.Processor;
+import ru.otus.processor.ProcessorEvenSecondException;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -95,8 +95,28 @@ class ComplexProcessorTest {
         verify(listener, times(1)).onUpdated(message, message);
     }
 
+    @Test
+    @DisplayName("Тестируем исключения возникающие каждую четную секунду")
+    void handleEvenSecondExceptionTest() throws InterruptedException {
+        //given
+        var message = new Message.Builder(1L).field8("field8").build();
+        var processor = new ProcessorEvenSecondException();
+        var countOfException = 0;
+        for (var i = 0; i <= 10; i++) {
+            Thread.sleep(1000);
+            try {
+                processor.process(message);
+            } catch (Exception e) {
+                if (System.currentTimeMillis() / 1000 % 2 == 0) {
+                    countOfException++;
+                }
+            }
+        }
+        assertThat(countOfException).isEqualTo(5);
+    }
+
     private static class TestException extends RuntimeException {
-        public TestException(String message) {
+        TestException(String message) {
             super(message);
         }
     }
