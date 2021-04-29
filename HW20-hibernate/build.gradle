@@ -1,0 +1,27 @@
+plugins {
+    // Apply the java plugin to add support for Java
+    id 'java'
+    id 'com.github.johnrengelman.shadow'
+}
+
+sourceCompatibility = JavaVersion.VERSION_15
+targetCompatibility = JavaVersion.VERSION_15
+
+dependencies {
+    implementation("ch.qos.logback:logback-classic")
+    implementation("org.hibernate:hibernate-core")
+    implementation('org.flywaydb:flyway-core')
+
+    implementation("org.postgresql:postgresql")
+}
+
+shadowJar {
+    archiveBaseName.set('gradleHelloWorld')
+    archiveVersion.set('0.1')
+    archiveClassifier.set('')
+    manifest {
+        attributes 'Main-Class': 'ru.otus.sinetskiy.App'
+    }
+}
+
+tasks.build.dependsOn tasks.shadowJar
