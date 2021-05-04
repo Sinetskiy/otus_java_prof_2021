@@ -30,39 +30,46 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
     }
 
     private void setCollectionOfComponents(Class<?> configClass, Constructor<?> ctor) throws Exception {
-            Object appConfig = ctor.newInstance();
-            var methods = configClass.getMethods();
-            for (var i = 0; i < methods.length; i++) { // но вообще говоря ордер может быть и 100 200 300 ...
-                for (Method method : methods) {
-                    addComponent(appConfig, i, method);
-                }
-            }
-    }
+        Object appConfig = ctor.newInstance();
+        var methods = configClass.getMethods();
+        var sortedMethods = getSortedMethods(methods);
 
-    private void addComponent(Object appConfig, int i, Method method) throws IllegalAccessException, InvocationTargetException {
-        if (method.isAnnotationPresent(AppComponent.class)) {
-            AppComponent annotations = method.getAnnotation(AppComponent.class);
-            if (annotations.order() == i) {
-                var params = method.getParameterTypes();
-                List<Object> args = new ArrayList<>();
-                for (var param : params) {
-                    args.add(appComponentsByName.get(param.getTypeName()));
-                }
-//                System.out.println(method.getName());
-//                System.out.println(appConfig.toString());
-//                for (var arg : args) {
-//                    System.out.println(arg);
-//                }
-//                var object =  method.invoke(appConfig, args); // <- запустите потом расскажете как этот метод работает
-                var object = args.size() != 0 ?
-                                            args.size() != 1 ?
-                                                    method.invoke(appConfig, args.get(0), args.get(1), args.get(2))
-                                                    : method.invoke(appConfig, args.get(0))
-                                                            : method.invoke(appConfig);
-                appComponentsByName.put(method.getReturnType().getTypeName(), object);
-                appComponentsByName.put(annotations.name(), object);
+        for (Map.Entry<String, ArrayList<Method>> entry : sortedMethods.entrySet()) {
+            var methodsByOrder = entry.getValue();
+            for (Method method : methodsByOrder) {
+                addComponent(appConfig, method);
             }
         }
+
+    }
+
+    private TreeMap<String, ArrayList<Method>> getSortedMethods(Method[] methods) {
+        var sortedMethods = new TreeMap<String, ArrayList<Method>>();
+        for (Method method : methods) {
+            if (method.isAnnotationPresent(AppComponent.class)) {
+                AppComponent annotations = method.getAnnotation(AppComponent.class);
+                ArrayList<Method> methodsList = sortedMethods.get(String.valueOf(annotations.order())) != null ?
+                        sortedMethods.get(String.valueOf(annotations.order())) : new ArrayList<>();
+                methodsList.add(method);
+                sortedMethods.put(String.valueOf(annotations.order()), methodsList);
+            }
+        }
+        return sortedMethods;
+    }
+
+    private void addComponent(Object appConfig, Method method) throws IllegalAccessException, InvocationTargetException {
+
+        AppComponent annotations = method.getAnnotation(AppComponent.class);
+
+        var params = method.getParameterTypes();
+        List<Object> args = new ArrayList<>();
+        for (var param : params) {
+            args.add(appComponentsByName.get(param.getTypeName()));
+        }
+
+        var object = method.invoke(appConfig, args.toArray(new Object[0]));
+        appComponentsByName.put(method.getReturnType().getTypeName(), object);
+        appComponentsByName.put(annotations.name(), object);
     }
 
     private void checkConfigClass(Class<?> configClass) {
